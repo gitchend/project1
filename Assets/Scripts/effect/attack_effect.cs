@@ -6,7 +6,6 @@ public class attack_effect : MonoBehaviour {
     private Animator animator;
     void Start () {
         animator = GetComponent<Animator> ();
-        transform.localPosition=new Vector3(0,0,-5f);
     }
     void Update () {
         if (is_anime_now_name ("blank")) {

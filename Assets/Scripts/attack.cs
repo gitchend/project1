@@ -6,6 +6,8 @@ public class attack : MonoBehaviour {
 	public int damage = 0;
 	public int floating_damage = 0;
 	public int beatback_damage = 0;
+	public int self_floating_damage = 0;
+	public int self_beatback_damage = 0;
 	public int stun = 0;
 	public int frame_extract = 0;
 	public bool is_single_dmg=true;
