@@ -9,5 +9,7 @@ public class background_layer{
 	public Dictionary<string, GameObject> img_map = new Dictionary<string, GameObject> ();
 	public float speed_rate;
     public bool is_light;
+    public GameObject pixel_basic;
+    public Vector2 layer_position_unpixeled;
 
 }

@@ -53,7 +53,7 @@ public class bear : MonoBehaviour
         float position_x = bearer.transform.position.x - attacker.transform.position.x;
         bearer.set_direction (position_x < 0);
 
-        Vector2 derection = transform.position - (attack.is_melee ? attacker.transform.position : attack.transform.position);
+        Vector2 derection = transform.position - attacker.transform.position;
         rb.velocity = new Vector2 ((attack.beatback_damage * (derection.x > 0 ? 1 : -1)), rb.velocity.y);
         //floating
         if (attack.is_ground_floating || bearer.get_in_air ())
@@ -61,31 +61,35 @@ public class bear : MonoBehaviour
             rb.velocity = new Vector2 (rb.velocity.x, attack.floating_damage);
         }
 
-        attacker.add_speed(attack.self_beatback_damage* (position_x< 0 ? 1 : -1),attack.self_floating_damage);
+        attacker.add_speed(attack.self_beatback_damage * (position_x < 0 ? 1 : -1), attack.self_floating_damage);
 
         bearer.set_hp (bearer.hp_now - attack.damage);
         bc.create_buff (1, attacker, bearer, attack.stun, attack.frame_extract);
 
-
         //face to attacker
-
         bearer.set_last_attacked (attacker);
+        attacker.set_last_attack(bearer);
 
         attacker.hit_message (attack);
         bearer.hitted_message(attack);
         //frame_extract
-        bearer.set_frame_extract (attack.frame_extract);
+        bc.create_buff(3, bearer, bearer, attack.frame_extract, 0);
         if (attack.is_melee)
         {
-            attacker.set_frame_extract (attack.frame_extract);
+            bc.create_buff(3, attacker, attacker, attack.frame_extract, 0);
         }
 
         //effect
-        ec.create_effect (1, false, parent, attack.frame_extract);
-        ec.create_effect (2, (Random.value > 0.5f), parent, attack.frame_extract);
+        ec.create_effect (1, false, parent, new Vector2(0, 0), bearer, attack.frame_extract);
+        ec.create_effect (2, (Random.value > 0.5f), parent, new Vector2(0, 0), bearer, 0);
 
-        ec.create_effect (5, bearer.get_direction(), parent, new Vector2((bearer.get_direction() ? 1 : -1) * (Random.value * 0.1f - 0.05f + 0.1f), Random.value * 0.1f - 0.12f), 0);
+        ec.create_effect (5, bearer.get_direction(), parent, new Vector2((bearer.get_direction() ? 1 : -1) * (Random.value * 0.1f - 0.05f + 0.1f), Random.value * 0.1f - 0.12f), bearer, 0);
 
+        if(attack.attack_kind == 0)
+        {
+            ec.create_effect (10, !bearer.get_direction(), parent, new Vector2((bearer.get_direction() ? -1 : 1) * (Random.value * 0.1f - 0.05f + 0.1f), Random.value * 0.1f - 0.12f), bearer, 0, attack.attack_direction);
+        }
+        //stun
         bc.create_buff(100, bearer, bearer, 10, attack.frame_extract);
 
         //audio

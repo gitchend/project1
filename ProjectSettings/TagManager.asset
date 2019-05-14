@@ -24,9 +24,9 @@ TagManager:
   - particle
   - disable
   - bullet
-  - 
-  - 
-  - 
+  - interacted
+  - interaction
+  - mark
   - 
   - 
   - 
@@ -53,4 +53,7 @@ TagManager:
     locked: 0
   - name: ui_layer_3
     uniqueID: 2400524527
+    locked: 0
+  - name: ui_layer_4
+    uniqueID: 902375513
     locked: 0

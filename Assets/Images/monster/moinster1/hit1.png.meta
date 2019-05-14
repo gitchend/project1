@@ -5,7 +5,7 @@ TextureImporter:
     21300000: hit1_0
     21300002: hit1_1
   externalObjects: {}
-  serializedVersion: 7
+  serializedVersion: 9
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
@@ -100,7 +100,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: aea2c61cea0df9a45beffb4340c00e17
+      spriteID: 7af507ffe4cb0734aa7f9dc8fbb0337c
       vertices: []
       indices: 
       edges: []
@@ -120,7 +120,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 8a0e860b871770c419b2e604f6df6f76
+      spriteID: b22604fd1be999246a18b28208f9c278
       vertices: []
       indices: 
       edges: []

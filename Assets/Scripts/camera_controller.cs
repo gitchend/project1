@@ -4,12 +4,17 @@ using System.Linq;
 using UnityEngine;
 public class camera_controller : MonoBehaviour
 {
+    public int kind_of_map = 0 ;
     private int reletive_rate;
     private GameObject target;
+    private player player;
 
     private GameObject ui_group1;
     private GameObject ui_group2;
     private GameObject ui_group3;
+    private GameObject ui_group3_renderer_1;
+    private GameObject ui_group3_renderer_2;
+    private GameObject loading;
 
     private List<background_layer> layers = new List<background_layer>();
     private GameObject layer1;
@@ -26,12 +31,24 @@ public class camera_controller : MonoBehaviour
     private GameObject image_obj;
     private GameObject image_obj_light;
 
+    private Vector3 camera_positon_to;
+    private Vector2 camera_positon_offset;
+    private Vector3 camera_velocity = Vector3.zero;
+
+    private float map_size_x;
+    private float map_size_y;
+
     void Start()
     {
-        target = GameObject.Find("hero").transform.Find("sprite").gameObject;
+        player = GameObject.Find("hero").GetComponent<player>();
+        target = player.transform.Find("sprite").gameObject;
         ui_group1 = GameObject.Find("ui_group1");
         ui_group2 = GameObject.Find("ui_group2");
         ui_group3 = GameObject.Find("ui_group3");
+        loading = GameObject.Find("loading");
+
+        ui_group3_renderer_1 = ui_group3.transform.Find("ui_group3_1").gameObject;
+        ui_group3_renderer_2 = ui_group3.transform.Find("ui_group3_2").gameObject;
 
         layer1 = GameObject.Find("layer1");
         layer2 = GameObject.Find("layer2");
@@ -42,8 +59,9 @@ public class camera_controller : MonoBehaviour
             background_layer background_layer = new background_layer();
             background_layer.layer_obj = layer1;
             background_layer.set = layer1.GetComponent<background_set>();
-            background_layer.speed_rate = 0.95f;
+            background_layer.speed_rate = 1.0f;
             background_layer.is_light = false;
+            background_layer.pixel_basic = target;
             layers.Add(background_layer);
         }
         if (layer2 != null)
@@ -51,8 +69,9 @@ public class camera_controller : MonoBehaviour
             background_layer background_layer = new background_layer();
             background_layer.layer_obj = layer2;
             background_layer.set = layer2.GetComponent<background_set>();
-            background_layer.speed_rate = 0.8f;
+            background_layer.speed_rate = 0.95f;
             background_layer.is_light = false;
+            background_layer.pixel_basic = layer1;
             layers.Add(background_layer);
         }
         if (layer3 != null)
@@ -60,8 +79,9 @@ public class camera_controller : MonoBehaviour
             background_layer background_layer = new background_layer();
             background_layer.layer_obj = layer3;
             background_layer.set = layer3.GetComponent<background_set>();
-            background_layer.speed_rate = 0.75f;
+            background_layer.speed_rate = 0.5f;
             background_layer.is_light = true;
+            background_layer.pixel_basic = layer2;
             layers.Add(background_layer);
         }
         if (layer4 != null)
@@ -69,8 +89,9 @@ public class camera_controller : MonoBehaviour
             background_layer background_layer = new background_layer();
             background_layer.layer_obj = layer4;
             background_layer.set = layer4.GetComponent<background_set>();
-            background_layer.speed_rate = 0.55f;
+            background_layer.speed_rate = 0.3f;
             background_layer.is_light = true;
+            background_layer.pixel_basic = layer3;
             layers.Add(background_layer);
         }
 
@@ -79,10 +100,31 @@ public class camera_controller : MonoBehaviour
         image_obj = Resources.Load("img_obj") as GameObject;
         image_obj_light = Resources.Load("img_obj_light") as GameObject;
         refresh_screen_size();
-    }
 
+        transform.position = new Vector3(target.transform.position.x, target.transform.position.y, transform.position.z);
+
+
+        switch(kind_of_map)
+        {
+        case 1:
+            map_size_x = 15;
+            map_size_y = 7;
+            break;
+        case 2:
+            map_size_x = 31;
+            map_size_y = 15;
+            break;
+        case 3:
+            map_size_x = 15;
+            map_size_y = 23;
+            break;
+        }
+        map_size_x -= screen_width * 1.0f / reletive_rate / 64 / 2;
+        map_size_y -= screen_height * 1.0f / reletive_rate / 64 / 2;
+
+    }
     // Update is called once per frame
-    void Update()
+    void LateUpdate()
     {
         focous_target();
         adjust_ui();
@@ -91,10 +133,38 @@ public class camera_controller : MonoBehaviour
     }
     private void focous_target()
     {
-        float target_x = target.transform.position.x;
-        float target_y = target.transform.position.y+0.5f;
+        bool is_player_run = player.is_anime_now_name("run1") || player.is_anime_now_name("run2");
+        Vector2 camera_target_offset = new Vector2((player.get_direction() ? 1 : -1) * 0.5f, 1);
+        camera_positon_to = new Vector3(target.transform.position.x + camera_target_offset.x, target.transform.position.y + camera_target_offset.y, transform.position.z);
 
-        transform.position = new Vector3(target_x, target_y, transform.position.z);
+        if((camera_positon_to - transform.position).magnitude > 0.08f)
+        {
+            transform.position = Vector3.SmoothDamp(transform.position, camera_positon_to, ref camera_velocity, 0.2f);
+
+        }
+        if(kind_of_map != 0)
+        {
+            float new_trans_x = transform.position.x;
+            float new_trans_y = transform.position.y;
+            if(new_trans_x < -map_size_x)
+            {
+                new_trans_x = -map_size_x;
+            }
+            if(new_trans_x > map_size_x)
+            {
+                new_trans_x = map_size_x;
+            }
+            if(new_trans_y < -map_size_y)
+            {
+                new_trans_y = -map_size_y;
+            }
+            if(new_trans_y > map_size_y)
+            {
+                new_trans_y = map_size_y;
+            }
+            transform.position = new Vector3(new_trans_x, new_trans_y, transform.position.z);
+        }
+
     }
     private void adjust_ui()
     {
@@ -106,7 +176,10 @@ public class camera_controller : MonoBehaviour
 
         ui_group1.transform.position = new Vector3(ui_group1_x, ui_group1_y, ui_group1.transform.position.z);
         ui_group2.transform.position = new Vector3(ui_group2_x, ui_group2_y, ui_group2.transform.position.z);
-        //ui_group3.transform.position = new Vector3 (transform.position.x, transform.position.y, ui_group3.transform.position.z);
+        ui_group3.transform.position = new Vector3(transform.position.x, transform.position.y, ui_group3.transform.position.z);
+
+        loading.transform.position = new Vector3(transform.position.x, transform.position.y, loading.transform.position.z);
+
     }
     private void adjust_background()
     {
@@ -116,14 +189,13 @@ public class camera_controller : MonoBehaviour
             remove_invisible_img(layer);
             add_new_img(layer);
         }
-
+        //adjust_pixel();
         background_mask.transform.position = new Vector3(transform.position.x, transform.position.y, background_mask.transform.position.z);
     }
     private void move_img(background_layer layer)
     {
         Vector2 position_miu = get_position_miu(layer.speed_rate, layer.set);
-        layer.layer_obj.transform.position=new Vector3(position_miu.x+layer.set.position_x,position_miu.y+layer.set.position_y,layer.layer_obj.transform.position.z);
-        adjust_pixel(layer.layer_obj);
+        layer.layer_obj.transform.position = new Vector3(position_miu.x + layer.set.position_x, position_miu.y + layer.set.position_y, layer.layer_obj.transform.position.z);
         // foreach (string key in layer.img_map.Keys)
         // {
         //     string[] index = key.Split('_');
@@ -210,24 +282,64 @@ public class camera_controller : MonoBehaviour
     {
         return obj.GetComponent<SpriteRenderer>().isVisible;
     }
-    protected void adjust_pixel(GameObject obj)
+    protected void adjust_pixel()
     {
-        obj.transform.position = new Vector3(pixel_fix(obj.transform.position.x), pixel_fix(obj.transform.position.y), obj.transform.position.z);
+        for (int i = 0; i < layers.Count; i++)
+        {
+            float target_x;
+            float target_y;
+
+            layers[i].layer_position_unpixeled = new Vector2(layers[i].layer_obj.transform.position.x, layers[i].layer_obj.transform.position.y);
+            if(i == 0)
+            {
+                target_x = layers[i].pixel_basic.transform.position.x;
+                target_y = layers[i].pixel_basic.transform.position.y;
+            }
+            else
+            {
+                target_x = layers[i - 1].layer_position_unpixeled.x;
+                target_y = layers[i - 1].layer_position_unpixeled.y;
+            }
+            float position_miu_x = layers[i].layer_obj.transform.position.x - target_x;
+            float position_miu_y = layers[i].layer_obj.transform.position.y - target_y;
+            layers[i].layer_obj.transform.position = new Vector3(layers[i].pixel_basic.transform.position.x + pixel_fix(position_miu_x), layers[i].pixel_basic.transform.position.y + pixel_fix(position_miu_y), layers[i].layer_obj.transform.position.z);
+            //layers[i].layer_obj.transform.position = new Vector3(pixel_fix(layers[i].layer_obj.transform.position.x),  pixel_fix(layers[i].layer_obj.transform.position.y), layers[i].layer_obj.transform.position.z);
+        }
+
     }
     private float pixel_fix(float float_num)
     {
         return (int)(float_num * 64) / 64.0f;
     }
+    private Vector2 pixel_fix(Vector2 vector2)
+    {
+        return new Vector2(pixel_fix(vector2.x), pixel_fix(vector2.y));
+    }
+    private Vector3 pixel_fix(Vector3 vector3)
+    {
+        return new Vector3(pixel_fix(vector3.x), pixel_fix(vector3.y), pixel_fix(vector3.z));
+    }
     public void refresh_screen_size()
     {
         screen_width = Screen.width;
         screen_height = Screen.height;
-        int width_rate = (int)(screen_width / 512.0f);
-        int height_rate = (int)(screen_height / 288.0f);
+        int width_rate = (int)(screen_width / 256.0f);
+        int height_rate = (int)(screen_height / 144.0f);
         reletive_rate = (width_rate < height_rate ? width_rate : height_rate);
         img_x = 1024 / 64.0f;
         img_y = 576 / 64.0f;
+
+        float camera_size = screen_height * 1.0f / reletive_rate / 2 / 64;
+        gameObject.GetComponent<Camera>().orthographicSize = camera_size ;
+        Debug.Log(camera_size);
+
         background_mask.transform.localScale = new Vector2(screen_width * 1.0f / reletive_rate, screen_height * 1.0f / reletive_rate);
         background_mask.GetComponent<SpriteRenderer>().color = new Color(0, 1, 1, 0);
+
+        ui_group3_renderer_1.transform.localScale = new Vector2(screen_width * 1.0f / reletive_rate, screen_height * 1.0f / reletive_rate * 0.75f);
+        ui_group3_renderer_2.transform.localScale = new Vector2(screen_width * 1.0f / reletive_rate, screen_height * 1.0f / reletive_rate);
+        ui_group3_renderer_1.transform.localPosition = new Vector3(0,  - screen_height * 0.125f / reletive_rate / 64.0f, ui_group3_renderer_1.transform.localPosition.z);
+        ui_group3_renderer_2.transform.localPosition = new Vector3(0, 0, ui_group3_renderer_2.transform.localPosition.z);
+
     }
 }

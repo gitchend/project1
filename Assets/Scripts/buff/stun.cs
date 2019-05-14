@@ -12,10 +12,9 @@ public class stun : buff {
 	}
 	public override void end () {
 		if (buff_to.get_in_air ()) {
-			time_now++;
+			time_now+=5;
 		} else {
 			buff_to.set_is_stun (false);
 		}
 	}
-
 }

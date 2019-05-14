@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class shake : buff {
-	GameObject obj = null;
+	private GameObject obj = null;
 	public override void init2 () {
 		obj = buff_to.get_sprite_obj ();
 	}

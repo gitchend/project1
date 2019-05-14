@@ -13,22 +13,23 @@ public class charactor : MonoBehaviour
 
     protected bool is_dead = false;
     protected bool is_pause = false;
+    protected bool is_pause_cache = false;
+
     protected bool in_air = false;
     protected bool against_wall = false;
     protected bool against_wall_2 = false;
+    protected bool against_ceiling = false;
+
     protected bool direction = true; //right
     protected bool is_stun = false;
-    protected bool is_in_stun_circle = false;
     protected bool is_hitted = false;
-    protected bool is_attackable=true;
-    protected int stun_time = 0;
+    protected bool is_attackable = true;
     protected int skill_spelling = -1;
 
-    protected int frame_extract = 0;
-    protected bool frame_extract_lock = false;
     protected Vector2 rb_velocity_cache;
 
     private List<GameObject> skills;
+    private List<Animator> effect_animators = new List<Animator>();
     protected Dictionary<int, buff> buff_map = new Dictionary<int, buff>();
 
     protected effect_controller ec;
@@ -40,13 +41,18 @@ public class charactor : MonoBehaviour
     protected Animator animator;
     protected List<int> anime_para_list;
     protected int anime_para_now = -1;
+    protected string anime_name_cache = "";
+    protected bool effect_create_lock = true;
 
     protected charactor target;
+    protected charactor last_attack;
     protected charactor last_attacked;
     protected GameObject sprite;
 
+    protected int timer = 0;
 
-    protected void init()
+
+    void Start()
     {
 
         rb = GetComponent<Rigidbody2D>();
@@ -76,14 +82,42 @@ public class charactor : MonoBehaviour
         sc = GameObject.Find("spell_controller").GetComponent<spell_controller>();
         bc = GameObject.Find("buff_controller").GetComponent<buff_controller>();
 
+        Start2();
+
     }
+    void Update ()
+    {
+        if(EarlyUpdate())
+        {
+            return;
+        }
+
+        timer++;
+        timer %= 1000;
+        if(!is_anime_now_name(anime_name_cache))
+        {
+            effect_create_lock = true;
+        }
+        anime_name_cache = get_anime_name_now();
+        //adjust_pixel ();
+        if (is_pause) return;
+
+        Update2();
+    }
+    void LateUpdate()
+    {
+        frame_extract_control ();
+    }
+
+    public virtual void Start2() { }
+    public virtual bool EarlyUpdate()
+    {
+        return false;
+    }
+    public virtual void Update2() { }
 
     protected void move(bool direction_to)
     {
-        if (direction_to != direction)
-        {
-            turn();
-        }
         if (against_wall)
         {
             set_speed(0, rb.velocity.y);
@@ -91,16 +125,12 @@ public class charactor : MonoBehaviour
         }
         else
         {
-            set_speed(speed * (direction ? 1 : -1), rb.velocity.y);
+            set_speed(speed * (direction_to ? 1 : -1), rb.velocity.y);
         }
 
     }
     protected void move(bool direction_to, float speed_to)
     {
-        if (direction_to != direction)
-        {
-            turn();
-        }
         if (against_wall)
         {
             set_speed(0, rb.velocity.y);
@@ -108,7 +138,7 @@ public class charactor : MonoBehaviour
         }
         else
         {
-            set_speed(speed_to * (direction ? 1 : -1), rb.velocity.y);
+            set_speed(speed_to * (direction_to ? 1 : -1), rb.velocity.y);
         }
 
     }
@@ -153,8 +183,15 @@ public class charactor : MonoBehaviour
     {
         return anime_para_now;
     }
+    protected string get_anime_name_now()
+    {
+        string sp = sprite.GetComponent<SpriteRenderer>().sprite.name;
+        string[] subs = sp.Split('_');
+        return sp.Substring(0, sp.Length - subs[subs.Length - 1].Length - 1);
+    }
     protected void skill(int index)
     {
+        add_speed(Random.value * 0.001f - 0.0005f, 0);
         if (skill_spelling != index)
         {
             if (skill_spelling != -1)
@@ -174,62 +211,48 @@ public class charactor : MonoBehaviour
         AnimatorStateInfo stateinfo = animator.GetCurrentAnimatorStateInfo(0);
         return stateinfo.normalizedTime;
     }
-    protected void pause_control(bool isopen)
+    public void add_effect_animator(Animator effect_animator)
     {
-        if (isopen)
-        {
-            rb.WakeUp();
-            rb.velocity = rb_velocity_cache;
-            animator.speed = (1);
-            frame_extract_lock = false;
-            is_pause = false;
-        }
-        else
+        effect_animators.Add(effect_animator);
+    }
+
+    private void frame_extract_control()
+    {
+        bool is_statu_change = false;
+        if (is_pause && !is_pause_cache)
         {
             rb_velocity_cache = rb.velocity;
             rb.Sleep();
             rb.gravityScale = 0;
-            animator.speed = (0);
-            frame_extract_lock = true;
-            is_pause = true;
+            animator.speed = 0;
+            is_statu_change = true;
         }
+        else if (!is_pause && is_pause_cache)
+        {
+            rb.WakeUp();
+            rb.velocity = rb_velocity_cache;
+            animator.speed = 1;
+            is_statu_change = true;
+        }
+        // effect pause
+        if(!is_statu_change)
+        {
+            for (int i = effect_animators.Count - 1; i >= 0; i--)
+            {
+                Animator effect_animator = effect_animators[i];
+                if(effect_animator == null)
+                {
+                    effect_animators.Remove (effect_animator);
+                }
+                else
+                {
+                    effect_animator.speed = ((is_pause ? 0 : 1));
+                }
+            }
+        }
+        is_pause_cache = is_pause;
     }
 
-    protected bool frame_extract_control()
-    {
-        if (frame_extract > 0)
-        {
-            frame_extract--;
-        }
-        else if (frame_extract_lock)
-        {
-            pause_control(true);
-        }
-        return frame_extract > 0;
-    }
-    protected bool stun_control(int stun_anime_id, int stun_out_anime_id)
-    {
-        if (is_stun)
-        {
-            if (!is_in_stun_circle)
-            {
-                set_anime_para(stun_anime_id);
-                is_in_stun_circle = true;
-            }
-            skill(-1);
-        }
-        else
-        {
-            if (is_in_stun_circle)
-            {
-                set_anime_para(stun_out_anime_id);
-                is_in_stun_circle = false;
-                return true;
-            }
-            return false;
-        }
-        return is_stun;
-    }
     protected void floating_control(float limit, float scale1, float scale2)
     {
         if (Mathf.Abs(rb.velocity.y) < limit)
@@ -245,15 +268,42 @@ public class charactor : MonoBehaviour
     {
         sprite.transform.position = new Vector3(pixel_fix(transform.position.x), pixel_fix(transform.position.y), transform.position.z);
     }
+    protected bool once_in_animation()
+    {
+        timer = 0;
+        if(effect_create_lock)
+        {
+            effect_create_lock = false;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+
+    }
     private float pixel_fix(float float_num)
     {
-        return (int)(float_num * 64) / 64.0f;
+        float ret_num = 0;
+        if(float_num >= 0)
+        {
+            ret_num = (int)(float_num * 64) / 64.0f;
+        }
+        else
+        {
+            ret_num = ((int)(float_num * 64) - 1 ) / 64.0f;
+        }
+        return ret_num;
     }
     //getter & setter
     public bool is_anime_now_name(string anime_name)
     {
         AnimatorStateInfo stateinfo = animator.GetCurrentAnimatorStateInfo(0);
         return stateinfo.IsName("Base Layer." + anime_name);
+    }
+    public void set_is_pause(bool is_pause_set)
+    {
+        is_pause = is_pause_set;
     }
     public void set_hp(int hp_set)
     {
@@ -295,13 +345,13 @@ public class charactor : MonoBehaviour
     {
         return against_wall_2;
     }
-    public void set_stun_time(int stun_time_now)
+    public void set_against_ceiling(bool against_ceiling_now)
     {
-        stun_time = stun_time_now;
+        against_ceiling = against_ceiling_now;
     }
-    public int get_stun_time()
+    public bool get_against_ceiling()
     {
-        return stun_time;
+        return against_ceiling;
     }
     public void set_direction(bool direction_now)
     {
@@ -322,31 +372,28 @@ public class charactor : MonoBehaviour
     {
         return new Vector2(rb.velocity.x, rb.velocity.y);
     }
-    public void set_frame_extract(int frame_extract_now)
-    {
-        if (frame_extract_now > 0)
-        {
-            pause_control(false);
-        }
-        frame_extract = frame_extract_now;
-    }
-    public int get_frame_extract()
-    {
-        return frame_extract;
-    }
     public void set_last_attacked(charactor last_attacked_now)
     {
         last_attacked = last_attacked_now;
+    }
+    public void set_last_attack(charactor last_attack_now)
+    {
+        last_attack = last_attack_now;
     }
     public charactor get_last_attacked()
     {
         return last_attacked;
     }
+    public charactor get_last_attack()
+    {
+        return last_attack;
+    }
     public bool get_is_stun()
     {
         return is_stun;
     }
-    public bool get_is_attackable(){
+    public bool get_is_attackable()
+    {
         return is_attackable;
     }
     public void set_is_stun(bool is_stun_set)
@@ -380,5 +427,6 @@ public class charactor : MonoBehaviour
     }
     public virtual void hit_message2(attack attack) { }
     public virtual void hitted_message2(attack attack) { }
+    public virtual void set_scroll_hit() { }
 
 }

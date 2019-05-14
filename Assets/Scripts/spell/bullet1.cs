@@ -9,14 +9,15 @@ public class bullet1 : spell_script {
 	private Rigidbody2D rb;
 	private bool is_dead = false;
 	private int dead_time;
+	
 	void OnEnable () {
 		if (speller != null) {
 			direction2 = direction2.normalized;
 			rb = GetComponent<Rigidbody2D> ();
 			sr = GetComponent<SpriteRenderer> ();
-			speed = 10;
+			speed = 15f;
 			Vector2 parent_position = speller.get_position2 ();
-			transform.position = new Vector2 (parent_position.x + (direction2.x > 0 ? 1 : -1) * 0.3f, parent_position.y -0.1f+ (-0.1f * Random.value));
+			transform.position = new Vector3 (parent_position.x + (direction2.x > 0 ? 1 : -1) * 0.2f, parent_position.y -0.1f+ (-0.1f * Random.value),transform.position.z);
 			attack attack = gameObject.GetComponent<attack> ();
 			attack.set_attacker (speller);
 			dead_time = 200;

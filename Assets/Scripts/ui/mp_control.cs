@@ -49,7 +49,7 @@ public class mp_control : MonoBehaviour {
 		for (int i = 0; i < mp_max; i++) {
 			GameObject mp_obj = new GameObject ();
 			mp_obj.transform.parent = gameObject.transform;
-			mp_obj.transform.localPosition = new Vector2 (i * 0.15625f + 0.28125f, -0.109375f);
+			mp_obj.transform.localPosition = new Vector2 (i * 0.15625f + 0.3125f, -0.109375f);
 			SpriteRenderer sr = mp_obj.AddComponent<SpriteRenderer> () as SpriteRenderer;
 			sr.sprite = mp_empty;
 			mp_list.Add (mp_obj);

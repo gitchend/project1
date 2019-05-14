@@ -6,8 +6,10 @@ TextureImporter:
     21300002: attack_effect1_1
     21300004: attack_effect1_2
     21300006: attack_effect1_3
+    21300008: attack_effect1_4
+    21300010: attack_effect1_5
   externalObjects: {}
-  serializedVersion: 7
+  serializedVersion: 9
   mipmaps:
     mipMapMode: 0
     enableMipMap: 0
@@ -102,7 +104,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 353421dec3a12404ab08488f8e0df406
+      spriteID: 874cfc757595b394188a48b76fce591b
       vertices: []
       indices: 
       edges: []
@@ -122,7 +124,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d245b1005dc43564b99ba30c658d7ec8
+      spriteID: fa1809ca2ee2d2a42943a4f7aae70bca
       vertices: []
       indices: 
       edges: []
@@ -142,7 +144,7 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 6c84a3e8b00e8424697f60b7cd8177a5
+      spriteID: 3fbe38015b43e7a468a3b94b1b2f679c
       vertices: []
       indices: 
       edges: []
@@ -162,7 +164,47 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 96642dc8a442e3144a8c0b1cec9b8e94
+      spriteID: a03409d3fd4d97a48bc19443d2196f8f
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: attack_effect1_4
+      rect:
+        serializedVersion: 2
+        x: 256
+        y: 0
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a13cd65efcf087d44b9e8b8d3d6fa043
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: attack_effect1_5
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 0
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fe14b56ce87b2fa439c93c250fbefbe7
       vertices: []
       indices: 
       edges: []
